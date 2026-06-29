@@ -9,6 +9,7 @@ import type { PickupLocation } from '@globus/core/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { PrintButton } from '@/components/orders/print-button';
 import { formatCHF } from '@/lib/utils';
 
 const ORDER_DRAFT_KEY = 'globus_order_draft';
@@ -84,7 +85,13 @@ export function OrderReview({ locale, pickupLocations }: ReviewDisplayProps) {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <div className="print-area space-y-6">
+        {/* En-tête visible uniquement à l'impression */}
+        <div className="print-only">
+          <h2 className="text-xl font-bold">Globus Livraison — Fiche de livraison</h2>
+          <Separator className="my-2" />
+        </div>
+        <Card>
         <CardHeader>
           <CardTitle>{t('order.reviewTitle')}</CardTitle>
         </CardHeader>
@@ -115,23 +122,39 @@ export function OrderReview({ locale, pickupLocations }: ReviewDisplayProps) {
           <h3 className="font-semibold text-sm uppercase text-muted-foreground">
             {t('order.sections.characteristics')}
           </h3>
+          {(data.packages ?? []).map((pkg, index) => (
+            <div key={index} className="rounded-md border border-border p-3 my-2">
+              <p className="font-semibold text-sm mb-1">
+                {t('order.fields.packageTitle', { number: index + 1 })}
+              </p>
+              <ReviewRow label={t('order.fields.bagNumber')} value={pkg.bag_number} />
+              <ReviewRow label={t('order.fields.packageDescription')} value={pkg.description} />
+              <ReviewRow
+                label={t('order.fields.weight')}
+                value={pkg.weight ? `${pkg.weight} kg` : null}
+              />
+              <ReviewRow label={t('order.fields.dimensions')} value={pkg.dimensions} />
+              <ReviewRow label={t('order.fields.fragile')} value={pkg.fragile} />
+              <ReviewRow label={t('order.fields.perishable')} value={pkg.perishable} />
+              <ReviewRow
+                label={t('order.fields.declaredValue')}
+                value={pkg.declared_value_chf ? formatCHF(Number(pkg.declared_value_chf)) : null}
+              />
+              <ReviewRow label={t('order.fields.extraInsurance')} value={pkg.extra_insurance} />
+              {pkg.goods_photo_url && (
+                <ReviewRow label={t('order.fields.goodsPhoto')} value="Photo jointe" />
+              )}
+            </div>
+          ))}
+          <Separator />
+          <h3 className="font-semibold text-sm uppercase text-muted-foreground">
+            {t('order.sections.recipient')}
+          </h3>
           <ReviewRow label={t('order.fields.clientName')} value={data.client_name} />
           <ReviewRow label={t('order.fields.clientPhone')} value={data.client_phone} />
           <ReviewRow label={t('order.fields.floor')} value={data.floor} />
-          <ReviewRow label={t('order.fields.weight')} value={data.weight ? `${data.weight} kg` : null} />
-          <ReviewRow label={t('order.fields.dimensions')} value={data.dimensions} />
           <ReviewRow label={t('order.fields.leaveAtDoor')} value={data.leave_at_door} />
-          <ReviewRow label={t('order.fields.fragile')} value={data.fragile} />
-          <ReviewRow label={t('order.fields.perishable')} value={data.perishable} />
-          <ReviewRow
-            label={t('order.fields.declaredValue')}
-            value={data.declared_value_chf ? formatCHF(Number(data.declared_value_chf)) : null}
-          />
-          <ReviewRow label={t('order.fields.extraInsurance')} value={data.extra_insurance} />
           <ReviewRow label={t('order.fields.specialInstructions')} value={data.special_instructions} />
-          {data.goods_photo_url && (
-            <ReviewRow label={t('order.fields.goodsPhoto')} value="Photo jointe" />
-          )}
           <Separator />
           <ReviewRow
             label={t('order.fields.price')}
@@ -139,13 +162,15 @@ export function OrderReview({ locale, pickupLocations }: ReviewDisplayProps) {
           />
         </CardContent>
       </Card>
+      </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 no-print">
         <Button variant="outline" onClick={() => router.push(`/${locale}/orders/new`)}>
           {t('common.back')}
         </Button>
+        <PrintButton />
         <Button onClick={handleConfirm} disabled={submitting}>
           {submitting ? t('common.loading') : t('order.actions.confirmOrder')}
         </Button>

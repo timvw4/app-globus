@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { AppShell } from '@/components/layout/app-shell';
+import { PageContent } from '@/components/layout/page-content';
 
 export default async function AuthenticatedLayout({
   children,
@@ -13,7 +14,7 @@ export default async function AuthenticatedLayout({
 
   return (
     <AppShell locale={locale} profile={profile}>
-      {children}
+      <PageContent>{children}</PageContent>
     </AppShell>
   );
 }

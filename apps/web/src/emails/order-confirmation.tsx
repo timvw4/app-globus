@@ -39,6 +39,24 @@ export function OrderConfirmationEmail({
       ? pickupLocations.find((l) => l.id === order.pickup_location_id)?.label
       : order.pickup_address_custom;
 
+  // Compatibilité avec les commandes « un seul colis » créées avant la mise à jour
+  const packages =
+    order.packages && order.packages.length > 0
+      ? order.packages
+      : [
+          {
+            bag_number: null,
+            description: '',
+            weight: order.weight ?? 0,
+            dimensions: order.dimensions ?? null,
+            fragile: order.fragile ?? false,
+            perishable: order.perishable ?? false,
+            declared_value_chf: order.declared_value_chf ?? null,
+            extra_insurance: order.extra_insurance ?? false,
+            goods_photo_url: order.goods_photo_url ?? null,
+          },
+        ];
+
   const preview =
     recipientType === 'dispatch'
       ? `Nouvelle course Globus — ${order.delivery_address}`
@@ -81,22 +99,36 @@ export function OrderConfirmationEmail({
           </Section>
           <Section>
             <Heading as="h2" style={{ fontSize: '16px', color: '#64748b' }}>
-              Détails
+              Colis ({packages.length})
+            </Heading>
+            {packages.map((pkg, index) => (
+              <div key={index} style={{ marginBottom: '12px' }}>
+                <Text style={{ margin: '8px 0 4px', fontSize: '14px', fontWeight: 'bold' }}>
+                  Colis {index + 1}
+                </Text>
+                <Row label="N° sac/colis" value={pkg.bag_number} />
+                <Row label="Contenu" value={pkg.description} />
+                <Row label="Poids" value={pkg.weight ? `${pkg.weight} kg` : null} />
+                <Row label="Dimensions" value={pkg.dimensions} />
+                <Row label="Fragile" value={pkg.fragile ? 'Oui' : null} />
+                <Row label="Périssable" value={pkg.perishable ? 'Oui' : null} />
+                <Row
+                  label="Valeur déclarée"
+                  value={pkg.declared_value_chf ? `${pkg.declared_value_chf} CHF` : null}
+                />
+                <Row label="Assurance complémentaire" value={pkg.extra_insurance ? 'Oui' : null} />
+                <Row label="Photo" value={pkg.goods_photo_url ? pkg.goods_photo_url : null} />
+              </div>
+            ))}
+          </Section>
+          <Section>
+            <Heading as="h2" style={{ fontSize: '16px', color: '#64748b' }}>
+              Destinataire & logistique
             </Heading>
             <Row label="Destinataire" value={order.client_name} />
             <Row label="Téléphone" value={order.client_phone} />
-            <Row label="Poids" value={order.weight ? `${order.weight} kg` : null} />
-            <Row label="Dimensions" value={order.dimensions} />
-            <Row label="Fragile" value={order.fragile ? 'Oui' : null} />
-            <Row label="Périssable" value={order.perishable ? 'Oui' : null} />
             <Row label="Laisser devant la porte" value={order.leave_at_door ? 'Oui' : null} />
-            <Row
-              label="Valeur déclarée"
-              value={order.declared_value_chf ? `${order.declared_value_chf} CHF` : null}
-            />
-            <Row label="Assurance complémentaire" value={order.extra_insurance ? 'Oui' : null} />
             <Row label="Instructions" value={order.special_instructions} />
-            <Row label="Photo" value={order.goods_photo_url ? order.goods_photo_url : null} />
             <Row label="Montant facturé" value={order.price_chf ? `${order.price_chf} CHF` : null} />
           </Section>
           {creator && (

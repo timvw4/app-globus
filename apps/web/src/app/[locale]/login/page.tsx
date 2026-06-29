@@ -23,17 +23,45 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
     setError('');
     setLoading(true);
 
-    const supabase = createBrowserClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const supabase = createBrowserClient();
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (authError) {
-      setError(t('loginError'));
+      if (authError) {
+        setError(t('loginError'));
+        return;
+      }
+
+      if (!data.user) {
+        setError(t('loginError'));
+        return;
+      }
+
+      // Vérifier que le profil existe (sinon l'app ne peut pas fonctionner)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, active')
+        .eq('id', data.user.id)
+        .single();
+
+      if (!profile?.active) {
+        setError(
+          'Compte connecté, mais profil manquant. Demandez à un admin de créer votre profil dans Supabase (table profiles).',
+        );
+        await supabase.auth.signOut();
+        return;
+      }
+
+      router.push(`/${locale}/orders/new`);
+      router.refresh();
+    } catch {
+      setError('Impossible de contacter Supabase. Vérifiez votre connexion internet et redémarrez le serveur (pnpm dev).');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push(`/${locale}/orders/new`);
-    router.refresh();
   }
 
   return (

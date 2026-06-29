@@ -52,6 +52,20 @@ export async function POST(request: Request) {
     const data = parsed.data;
     const isOtherPickup = data.pickup_location_id === PICKUP_OTHER_VALUE;
 
+    // On nettoie chaque colis avant de l'enregistrer (valeurs vides → null)
+    const packages = data.packages.map((pkg) => ({
+      bag_number: pkg.bag_number ?? null,
+      description: pkg.description,
+      weight: pkg.weight,
+      dimensions: pkg.dimensions ?? null,
+      fragile: pkg.fragile,
+      perishable: pkg.perishable,
+      declared_value_chf:
+        typeof pkg.declared_value_chf === 'number' ? pkg.declared_value_chf : null,
+      extra_insurance: pkg.extra_insurance,
+      goods_photo_url: pkg.goods_photo_url ?? null,
+    }));
+
     const orderInsert = {
       pickup_location_id: isOtherPickup ? null : data.pickup_location_id,
       pickup_address_custom: isOtherPickup ? data.pickup_address_custom ?? null : null,
@@ -65,16 +79,9 @@ export async function POST(request: Request) {
       client_phone: data.client_phone ?? null,
       requested_date: data.requested_date || null,
       requested_time_slot: data.requested_time_slot || null,
-      weight: typeof data.weight === 'number' ? data.weight : null,
-      dimensions: data.dimensions ?? null,
       leave_at_door: data.leave_at_door,
-      fragile: data.fragile,
-      perishable: data.perishable,
-      goods_photo_url: data.goods_photo_url ?? null,
-      declared_value_chf:
-        typeof data.declared_value_chf === 'number' ? data.declared_value_chf : null,
-      extra_insurance: data.extra_insurance,
       special_instructions: data.special_instructions ?? null,
+      packages,
       price_chf: typeof data.price_chf === 'number' ? data.price_chf : null,
       created_by: user.id,
       status: 'created' as const,

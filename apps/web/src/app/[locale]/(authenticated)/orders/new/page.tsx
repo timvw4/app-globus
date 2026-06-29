@@ -4,6 +4,7 @@ import {
   getActivePricingRule,
   getAppSettings,
   getEnabledDeliveryOptions,
+  getNextAvailableBagNumber,
 } from '@globus/core/supabase';
 import { requireAuth } from '@/lib/auth';
 import { OrderForm } from '@/components/orders/order-form';
@@ -13,11 +14,12 @@ export default async function NewOrderPage({ params }: { params: Promise<{ local
   const { supabase } = await requireAuth(locale);
   const t = await getTranslations('order');
 
-  const [pickupLocations, settings, pricingRule, deliveryOptions] = await Promise.all([
+  const [pickupLocations, settings, pricingRule, deliveryOptions, nextBagNumber] = await Promise.all([
     getActivePickupLocations(supabase),
     getAppSettings(supabase),
     getActivePricingRule(supabase),
     getEnabledDeliveryOptions(supabase),
+    getNextAvailableBagNumber(supabase),
   ]);
 
   return (
@@ -29,6 +31,7 @@ export default async function NewOrderPage({ params }: { params: Promise<{ local
         settings={settings}
         pricingRule={pricingRule}
         deliveryOptions={deliveryOptions}
+        nextBagNumber={nextBagNumber}
       />
     </div>
   );

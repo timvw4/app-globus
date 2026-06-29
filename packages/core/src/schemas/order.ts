@@ -8,7 +8,35 @@ import type { OperatingHoursSettings } from '../types';
 import { isSunday } from '../business/operatingHours';
 import { isValidTimeSlot } from '../business/timeSlots';
 import { isWithinCutoff } from '../business/cutoff';
+import { isValidPhoneNumber } from '../business/phone';
 import type { CutoffSettings } from '../types';
+
+/**
+ * Schéma d'UN colis.
+ * Chaque commande contient désormais une liste de colis (au moins un).
+ * La description et le poids sont obligatoires ; le reste est facultatif.
+ */
+export const packageItemSchema = z.object({
+  // Numéro du sac / colis (identifiant physique) — facultatif
+  bag_number: z.string().optional(),
+  // Contenu du colis — obligatoire
+  description: z.string().min(1, 'order.validation.packageDescriptionRequired'),
+  // Poids en kg — obligatoire et strictement positif
+  weight: z
+    .coerce
+    .number({ invalid_type_error: 'order.validation.packageWeightRequired' })
+    .positive('order.validation.packageWeightRequired'),
+  // Dimensions (texte libre, ex: 30×20×15 cm) — facultatif
+  dimensions: z.string().optional(),
+  // Caractéristiques — facultatives
+  fragile: z.boolean().default(false),
+  perishable: z.boolean().default(false),
+  declared_value_chf: z.coerce.number().nonnegative().optional().or(z.literal('')),
+  extra_insurance: z.boolean().default(false),
+  goods_photo_url: z.string().optional(),
+});
+
+export type PackageItemData = z.infer<typeof packageItemSchema>;
 
 /** Schéma de base pour une commande (formulaire) */
 export const orderFormSchema = z
@@ -24,23 +52,19 @@ export const orderFormSchema = z
     is_hotel: z.boolean().default(false),
     hotel_room_number: z.string().optional(),
 
-    // Optionnel — destinataire & logistique
-    floor: z.string().optional(),
-    client_name: z.string().optional(),
-    client_phone: z.string().optional(),
-    requested_date: z.string().optional(),
-    requested_time_slot: z.string().optional(),
-    weight: z.coerce.number().positive().optional().or(z.literal('')),
-    dimensions: z.string().optional(),
-
-    // Optionnel — caractéristiques
+    // Obligatoire — destinataire & logistique
+    floor: z.string().min(1, 'order.validation.floorRequired'),
+    client_name: z.string().min(1, 'order.validation.clientNameRequired'),
+    client_phone: z.string().min(1, 'order.validation.clientPhoneRequired'),
+    // Obligatoire — date & créneau
+    requested_date: z.string().min(1, 'order.validation.dateRequired'),
+    requested_time_slot: z.string().min(1, 'order.validation.timeSlotRequired'),
+    // Facultatif
     leave_at_door: z.boolean().default(false),
-    fragile: z.boolean().default(false),
-    perishable: z.boolean().default(false),
-    goods_photo_url: z.string().optional(),
-    declared_value_chf: z.coerce.number().nonnegative().optional().or(z.literal('')),
-    extra_insurance: z.boolean().default(false),
     special_instructions: z.string().optional(),
+
+    // Obligatoire — au moins un colis
+    packages: z.array(packageItemSchema).min(1, 'order.validation.packagesRequired'),
 
     // Tarif (peut être ajusté manuellement)
     price_chf: z.coerce.number().nonnegative().optional(),
@@ -75,16 +99,27 @@ export const orderFormSchema = z
       });
     }
 
-    // Assurance complémentaire recommandée si valeur > seuil
-    const declaredValue =
-      typeof data.declared_value_chf === 'number' ? data.declared_value_chf : null;
-    if (declaredValue != null && declaredValue > INSURANCE_THRESHOLD_CHF && !data.extra_insurance) {
+    // Téléphone du destinataire : si renseigné, vérifier le nombre de chiffres
+    if (data.client_phone?.trim() && !isValidPhoneNumber(data.client_phone)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'order.validation.extraInsuranceRecommended',
-        path: ['extra_insurance'],
+        message: 'order.validation.invalidPhone',
+        path: ['client_phone'],
       });
     }
+
+    // Assurance complémentaire recommandée si la valeur d'un colis dépasse le seuil
+    data.packages.forEach((pkg, index) => {
+      const declaredValue =
+        typeof pkg.declared_value_chf === 'number' ? pkg.declared_value_chf : null;
+      if (declaredValue != null && declaredValue > INSURANCE_THRESHOLD_CHF && !pkg.extra_insurance) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'order.validation.extraInsuranceRecommended',
+          path: ['packages', index, 'extra_insurance'],
+        });
+      }
+    });
   });
 
 export type OrderFormData = z.infer<typeof orderFormSchema>;
@@ -146,15 +181,9 @@ export const orderInsertSchema = z.object({
   client_phone: z.string().nullable(),
   requested_date: z.string().nullable(),
   requested_time_slot: z.string().nullable(),
-  weight: z.number().nullable(),
-  dimensions: z.string().nullable(),
   leave_at_door: z.boolean(),
-  fragile: z.boolean(),
-  perishable: z.boolean(),
-  goods_photo_url: z.string().nullable(),
-  declared_value_chf: z.number().nullable(),
-  extra_insurance: z.boolean(),
   special_instructions: z.string().nullable(),
+  packages: z.array(packageItemSchema),
   price_chf: z.number().nullable(),
   created_by: z.string().uuid(),
 });

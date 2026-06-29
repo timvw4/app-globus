@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { Order, PickupLocation } from '@globus/core/types';
+import { getEffectiveOrderStatus } from '@globus/core/business';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +40,8 @@ export function OrdersList({ locale, orders, pickupLocations }: OrdersListProps)
   const [dateTo, setDateTo] = useState('');
 
   const filtered = orders.filter((order) => {
-    if (statusFilter !== 'all' && order.status !== statusFilter) return false;
+    const effectiveStatus = getEffectiveOrderStatus(order);
+    if (statusFilter !== 'all' && effectiveStatus !== statusFilter) return false;
     if (pickupFilter !== 'all' && order.pickup_location_id !== pickupFilter) return false;
     if (dateFrom && order.created_at < dateFrom) return false;
     if (dateTo && order.created_at > dateTo + 'T23:59:59') return false;
@@ -104,14 +106,17 @@ export function OrdersList({ locale, orders, pickupLocations }: OrdersListProps)
         <p className="text-center text-muted-foreground py-8">{t('common.noResults')}</p>
       ) : (
         <div className="space-y-3">
-          {filtered.map((order) => (
+          {filtered.map((order) => {
+            const effectiveStatus = getEffectiveOrderStatus(order);
+
+            return (
             <Card key={order.id} className="hover:shadow-md transition-shadow">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Badge variant={statusVariant[order.status] ?? 'default'}>
-                        {t(`order.status.${order.status}`)}
+                      <Badge variant={statusVariant[effectiveStatus] ?? 'default'}>
+                        {t(`order.status.${effectiveStatus}`)}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         {formatDateTime(order.created_at)}
@@ -127,13 +132,14 @@ export function OrdersList({ locale, orders, pickupLocations }: OrdersListProps)
                   <div className="flex items-center gap-3">
                     <span className="font-semibold">{formatCHF(order.price_chf)}</span>
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/${locale}/orders/${order.id}`}>{t('common.edit')}</Link>
+                      <Link href={`/${locale}/orders/${order.id}`}>{t('common.detail')}</Link>
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

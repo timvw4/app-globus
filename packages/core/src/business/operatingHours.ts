@@ -60,13 +60,15 @@ export function getDayKey(date: Date): DayKey {
 /** Retourne les horaires du jour pour une date */
 export function getDayHours(date: Date, settings: OperatingHoursSettings): DayHours {
   const key = getDayKey(date);
-  return settings[key];
+  // Filet de sécurité : si les horaires reçus sont incomplets (jour manquant),
+  // on retombe sur les horaires par défaut pour éviter une erreur.
+  return settings?.[key] ?? DEFAULT_OPERATING_HOURS[key];
 }
 
 /** Vérifie si le jour est fermé (dimanche ou marqué closed) */
 export function isDayClosed(date: Date, settings: OperatingHoursSettings): boolean {
   const day = getDayHours(date, settings);
-  return day.closed === true || date.getDay() === 0;
+  return day?.closed === true || date.getDay() === 0;
 }
 
 /** Vérifie si une date est un dimanche */

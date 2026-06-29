@@ -8,6 +8,7 @@
     "confirm": "Confirmer",
     "back": "Retour",
     "edit": "Modifier",
+    "detail": "Détail",
     "delete": "Supprimer",
     "search": "Rechercher",
     "filter": "Filtrer",
@@ -61,7 +62,13 @@
       "requestedDate": "Date souhaitée",
       "requestedTimeSlot": "Créneau horaire",
       "weight": "Poids (kg)",
-      "dimensions": "Dimensions (L×l×h)",
+      "dimensions": "Dimensions (cm)",
+      "packageTitle": "Colis {number}",
+      "bagNumber": "Numéro sac / colis",
+      "bagNumberPlaceholder": "Ex : colis-001",
+      "bagNumberAuto": "Numéro attribué automatiquement",
+      "packageDescription": "Contenu du colis",
+      "packageDescriptionPlaceholder": "Ex : documents, vêtements, cadeau...",
       "leaveAtDoor": "Laisser devant la porte",
       "fragile": "Fragile",
       "perishable": "Produits frais / périssables",
@@ -90,7 +97,20 @@
       "continue": "Continuer vers le récapitulatif",
       "confirmOrder": "Confirmer la commande",
       "uploadPhoto": "Ajouter une photo",
-      "removePhoto": "Supprimer la photo"
+      "removePhoto": "Supprimer la photo",
+      "addPackage": "Ajouter un colis",
+      "removePackage": "Supprimer",
+      "print": "Imprimer la fiche de livraison"
+    },
+    "address": {
+      "hint": "Commencez à taper pour voir des suggestions d'adresses en Suisse",
+      "noResults": "Aucune adresse trouvée — vous pouvez saisir l'adresse manuellement"
+    },
+    "phone": {
+      "countryCode": "Indicatif pays",
+      "pinned": "Prioritaires",
+      "others": "Autres pays",
+      "placeholder": "79 123 45 67"
     },
     "validation": {
       "pickupRequired": "Veuillez sélectionner un lieu de départ",
@@ -98,7 +118,16 @@
       "deliveryRequired": "Veuillez saisir l'adresse de livraison",
       "accessDetailRequired": "Veuillez préciser les détails d'accès",
       "hotelRoomRequired": "Veuillez saisir le numéro de chambre",
+      "invalidPhone": "Numéro de téléphone invalide : vérifiez le nombre de chiffres",
+      "dateRequired": "Veuillez choisir une date de livraison",
+      "timeSlotRequired": "Veuillez choisir un créneau horaire",
+      "clientNameRequired": "Veuillez saisir le nom du destinataire",
+      "clientPhoneRequired": "Veuillez saisir le téléphone du destinataire",
+      "floorRequired": "Veuillez indiquer l'étage",
       "extraInsuranceRecommended": "Une assurance complémentaire est recommandée pour une valeur supérieure à 5'000 CHF",
+      "packagesRequired": "Veuillez ajouter au moins un colis",
+      "packageDescriptionRequired": "Veuillez décrire le contenu du colis",
+      "packageWeightRequired": "Veuillez saisir un poids valide (supérieur à 0)",
       "sundayClosed": "Les livraisons ne sont pas possibles le dimanche",
       "cutoffExceeded": "L'heure limite de commande est dépassée pour cette date",
       "invalidTimeSlot": "Le créneau sélectionné n'est pas valide"
@@ -106,6 +135,9 @@
     "success": {
       "created": "Commande créée avec succès",
       "emailsSent": "Les notifications ont été envoyées"
+    },
+    "pricing": {
+      "autoCalculated": "Montant calculé automatiquement"
     },
     "filters": {
       "status": "Statut",
@@ -151,16 +183,35 @@
       "closed": "Fermé",
       "weekdayCutoff": "Dernière commande (semaine)",
       "saturdayCutoff": "Dernière commande (samedi)",
-      "globusEmail": "E-mail de notification Globus"
+      "globusEmail": "E-mail de notification Globus",
+      "days": {
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche"
+      }
     },
     "locations": {
       "label": "Libellé",
       "sortOrder": "Ordre",
-      "active": "Actif"
+      "active": "Actif",
+      "deleteConfirm": "Supprimer le lieu « {label} » ? Cette action est définitive.",
+      "deleteBlocked": "Impossible de supprimer : des commandes utilisent encore ce lieu. Décochez « Actif » pour le masquer.",
+      "deleted": "Lieu supprimé"
     },
     "options": {
-      "enabled": "Activée"
+      "enabled": "Activée",
+      "surcharge": "Supplément (CHF)"
     },
-    "saved": "Modifications enregistrées"
+    "actions": {
+      "save": "Enregistrer",
+      "delete": "Supprimer",
+      "add": "Ajouter un lieu"
+    },
+    "saved": "Modifications enregistrées",
+    "error": "Une erreur est survenue"
   }
 }

@@ -42,10 +42,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && pathWithoutLocale === '/login') {
-    const ordersUrl = new URL(`/${locale}/orders/new`, request.url);
-    return NextResponse.redirect(ordersUrl);
-  }
+  // Ne pas rediriger automatiquement login → orders ici :
+  // un user peut être connecté sans profil (boucle infinie sinon).
 
   if (pathWithoutLocale === '/') {
     const target = user ? `/${locale}/orders/new` : `/${locale}/login`;

@@ -32,6 +32,64 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .animate-in-soft {
+    animation: fade-in-soft 0.25s ease-out;
+  }
+}
+
+@keyframes fade-in-soft {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Élément réservé à l'impression : caché à l'écran */
+.print-only {
+  display: none;
+}
+
+/* Règles d'impression : on n'imprime que la zone « .print-area » */
+@media print {
+  /* Masquer ce qui ne doit pas être imprimé (boutons, navigation...) */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Tout cacher, puis ne ré-afficher que la fiche de livraison */
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Afficher les éléments réservés à l'impression */
+  .print-only {
+    display: block;
+  }
+
+  /* Conserver les couleurs (badges, etc.) à l'impression */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

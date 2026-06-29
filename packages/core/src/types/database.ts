@@ -19,6 +19,19 @@ export interface PickupLocation {
   updated_at?: string;
 }
 
+/** Un colis appartenant à une commande (stocké dans la colonne JSON `packages`) */
+export interface PackageItem {
+  bag_number?: string | null;
+  description: string;
+  weight: number;
+  dimensions?: string | null;
+  fragile?: boolean;
+  perishable?: boolean;
+  declared_value_chf?: number | null;
+  extra_insurance?: boolean;
+  goods_photo_url?: string | null;
+}
+
 export interface Order {
   id: string;
   pickup_location_id: string | null;
@@ -33,21 +46,26 @@ export interface Order {
   client_phone: string | null;
   requested_date: string | null;
   requested_time_slot: string | null;
-  weight: number | null;
-  dimensions: string | null;
   leave_at_door: boolean;
-  fragile: boolean;
-  perishable: boolean;
-  goods_photo_url: string | null;
-  declared_value_chf: number | null;
-  extra_insurance: boolean;
   special_instructions: string | null;
+  // Liste des colis de la commande
+  packages: PackageItem[];
   status: OrderStatus;
   price_chf: number | null;
   created_by: string;
   created_at: string;
   updated_at: string;
   logtech_ref: string | null;
+
+  // Anciens champs « un seul colis » — conservés pour les commandes créées
+  // avant la mise à jour. Ne plus utiliser pour les nouvelles commandes.
+  weight?: number | null;
+  dimensions?: string | null;
+  fragile?: boolean;
+  perishable?: boolean;
+  goods_photo_url?: string | null;
+  declared_value_chf?: number | null;
+  extra_insurance?: boolean;
 }
 
 export interface PricingRule {
