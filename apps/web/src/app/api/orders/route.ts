@@ -7,7 +7,7 @@ import {
 } from '@globus/core/schemas';
 import { PICKUP_OTHER_VALUE } from '@globus/core/types';
 import type { Order } from '@globus/core/types';
-import { logtechClient } from '@globus/core/integrations';
+import { getLogtechClient } from '@globus/core/integrations';
 import {
   getAppSettings,
   getProfile,
@@ -110,23 +110,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Erreur lors de la création' }, { status: 500 });
     }
 
-    // TODO: Intégration Logtech — stub pour l'instant
+    const { data: pickupLocations } = await supabase.from('pickup_locations').select('*');
+    const locations = pickupLocations ?? [];
+    const creator = await getProfile(supabase, user.id);
+
+    // Envoi vers Logtech (staging) + sauvegarde de la référence — Supabase reste en parallèle pour l'instant
     const pickupAddress = isOtherPickup
       ? (data.pickup_address_custom ?? '')
-      : '';
+      : (locations.find((loc) => loc.id === data.pickup_location_id)?.label ?? 'Globus Genève');
+
     try {
-      const logtechResult = await logtechClient.createOrder(order, pickupAddress);
+      const logtechResult = await getLogtechClient({
+        apiKey: process.env.LOGTECH_API_KEY,
+        baseUrl: process.env.LOGTECH_API_URL,
+      }).createOrder(order, {
+        pickupAddress,
+        orderedBy: creator?.full_name ?? user.email ?? null,
+      });
       await db
         .from('orders')
         .update({ logtech_ref: logtechResult.logtechRef } as never)
         .eq('id', order.id);
-    } catch {
-      // Logtech non implémenté — on continue
+    } catch (logtechError) {
+      console.error('Logtech createOrder error:', logtechError);
+      // La commande reste enregistrée dans Supabase même si Logtech échoue
     }
 
     // Envoi des emails
-    const { data: pickupLocations } = await supabase.from('pickup_locations').select('*');
-    const creator = await getProfile(supabase, user.id);
 
     const dispatchEmail =
       process.env.DISPATCH_EMAIL ?? 'dispo@coursier.ch';
@@ -139,8 +149,6 @@ export async function POST(request: Request) {
       if (!resend) {
         return NextResponse.json({ id: order.id });
       }
-      const locations = pickupLocations ?? [];
-
       const dispatchHtml = await render(
         OrderConfirmationEmail({
           order,
