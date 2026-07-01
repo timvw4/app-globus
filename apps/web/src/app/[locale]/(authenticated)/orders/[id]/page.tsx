@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { Order } from '@globus/core/types';
-import { getEffectiveOrderStatus } from '@globus/core/business';
 import { notFound } from 'next/navigation';
 import { getActivePickupLocations, getShowPricingEnabled } from '@globus/core/supabase';
+import { getLogtechClient } from '@globus/core/integrations';
 import { requireAuth } from '@/lib/auth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,13 +56,25 @@ export default async function OrderDetailPage({
           },
         ];
 
-  const effectiveStatus = getEffectiveOrderStatus(order);
+  // Statut d'acceptation côté Vélopostale (Logtech). On interroge l'API seulement
+  // si un vrai UUID Logtech existe (les références « STUB- » sont des simulations).
+  let logtechAcceptance: 'accepted' | 'pending' | 'unavailable' | null = null;
+  if (order.logtech_ref && !order.logtech_ref.startsWith('STUB-')) {
+    try {
+      const status = await getLogtechClient({
+        apiKey: process.env.LOGTECH_API_KEY,
+        baseUrl: process.env.LOGTECH_API_URL,
+      }).getOrderStatus(order.logtech_ref);
+      logtechAcceptance = status === 'accepted' ? 'accepted' : 'pending';
+    } catch {
+      logtechAcceptance = 'unavailable';
+    }
+  }
 
-  const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'warning' | 'destructive'> = {
-    created: 'secondary',
-    en_cours: 'warning',
-    livree: 'success',
-    annulee: 'destructive',
+  const logtechBadgeVariant: Record<string, 'secondary' | 'success' | 'warning'> = {
+    accepted: 'success',
+    pending: 'warning',
+    unavailable: 'secondary',
   };
 
   function Row({ label, value }: { label: string; value: string | null | undefined }) {
@@ -93,11 +105,15 @@ export default async function OrderDetailPage({
           <Separator className="my-2" />
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">{t('detailTitle')}</h1>
-          <Badge variant={statusVariant[effectiveStatus] ?? 'default'}>
-            {t(`status.${effectiveStatus}`)}
-          </Badge>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {logtechAcceptance && (
+              <Badge variant={logtechBadgeVariant[logtechAcceptance]}>
+                {t(`logtech.${logtechAcceptance}`)}
+              </Badge>
+            )}
+          </div>
         </div>
 
         <Card>

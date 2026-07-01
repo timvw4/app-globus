@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { Order, PickupLocation } from '@globus/core/types';
 import { getEffectiveOrderStatus } from '@globus/core/business';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,13 +24,6 @@ interface OrdersListProps {
   pickupLocations: PickupLocation[];
   showPricing: boolean;
 }
-
-const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'warning' | 'destructive'> = {
-  created: 'secondary',
-  en_cours: 'warning',
-  livree: 'success',
-  annulee: 'destructive',
-};
 
 export function OrdersList({ locale, orders, pickupLocations, showPricing }: OrdersListProps) {
   const t = useTranslations();
@@ -108,21 +100,14 @@ export function OrdersList({ locale, orders, pickupLocations, showPricing }: Ord
       ) : (
         <div className="space-y-3">
           {filtered.map((order) => {
-            const effectiveStatus = getEffectiveOrderStatus(order);
-
             return (
             <Card key={order.id} className="hover:shadow-md transition-shadow">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={statusVariant[effectiveStatus] ?? 'default'}>
-                        {t(`order.status.${effectiveStatus}`)}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDateTime(order.created_at)}
-                      </span>
-                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {formatDateTime(order.created_at)}
+                    </span>
                     <p className="font-medium">{order.delivery_address}</p>
                     <p className="text-sm text-muted-foreground">
                       {getPickupLabel(order)}

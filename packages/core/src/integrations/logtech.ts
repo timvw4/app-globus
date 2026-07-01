@@ -193,9 +193,8 @@ export function mapOrderToLogtechPayload(order: Order, context: LogtechOrderCont
     }
   }
 
-  const referenceTime =
-    deliveryStop.dateTimeFrom ??
-    (order.requested_date ? `${order.requested_date}T08:00:00+02:00` : new Date().toISOString());
+  // Alerte le dispatcher dès la création ; le créneau de livraison reste sur deliveryStop.
+  const referenceTime = new Date().toISOString();
 
   const packages = order.packages?.length ? order.packages : [];
   const shipments = packages.length > 0 ? packages.map(packageToShipment) : [{ count: 1, description: 'Colis Globus', weight_kg: 1 }];
@@ -206,20 +205,18 @@ export function mapOrderToLogtechPayload(order: Order, context: LogtechOrderCont
       customer: {
         address: buildCustomerAddress(),
       },
+      // Référence de la commande à un seul endroit (bon de transport) pour éviter
+      // qu'elle apparaisse en double/triple chez le dispatcher.
       waybill: {
         identifier: order.id,
       },
-      billingRecord: context.orderedBy
-        ? { personWhoOrdered: context.orderedBy, invoiceReference: order.id }
-        : { invoiceReference: order.id },
+      // On garde uniquement le nom du donneur d'ordre pour la facturation ;
+      // la référence reste sur le waybill ci-dessus.
+      ...(context.orderedBy
+        ? { billingRecord: { personWhoOrdered: context.orderedBy } }
+        : {}),
       stops: [pickupStop, deliveryStop],
       shipments,
-      notes: [
-        {
-          note: `Commande portail Globus — ref. ${order.id}`,
-          audience: ['dispatcher'] as LogtechNote['audience'],
-        },
-      ],
     },
   };
 }

@@ -106,7 +106,7 @@ export function OrderConfirmationEmail({
             </Heading>
             <Row label="Date souhaitée" value={order.requested_date} />
             <Row label="Créneau" value={order.requested_time_slot} />
-            <Row label="Infos créneau" value={order.time_slot_notes} />
+            <Row label="Informations spécifiques" value={order.time_slot_notes} />
           </Section>
           <Section>
             <Heading as="h2" style={{ fontSize: '16px', color: '#64748b' }}>
@@ -139,7 +139,7 @@ export function OrderConfirmationEmail({
           )}
           <Hr />
           <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
-            Globus Livraison — Vélopostale
+            Globus Livraison — La Vélopostale
           </Text>
         </Container>
       </Body>

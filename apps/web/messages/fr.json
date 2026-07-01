@@ -63,7 +63,7 @@
       "clientPhone": "Téléphone du destinataire",
       "requestedDate": "Date souhaitée",
       "requestedTimeSlot": "Créneau horaire de livraison",
-      "timeSlotNotes": "Infos sur le créneau",
+      "timeSlotNotes": "Informations spécifiques",
       "timeSlotNotesPlaceholder": "Ex : précision pour le coursier, contrainte horaire...",
       "weight": "Poids (kg)",
       "dimensions": "Dimensions (cm)",
@@ -97,6 +97,11 @@
       "en_cours": "En cours",
       "livree": "Livrée",
       "annulee": "Annulée"
+    },
+    "logtech": {
+      "accepted": "Acceptée par La Vélopostale",
+      "pending": "En attente chez Vélopostale",
+      "unavailable": "Statut Vélopostale indisponible"
     },
     "actions": {
       "continue": "Continuer vers le récapitulatif",
